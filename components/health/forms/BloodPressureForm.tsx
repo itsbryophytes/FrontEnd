@@ -21,10 +21,11 @@ export const BloodPressureForm: React.FC<BloodPressureFormProps> = ({ onSave, on
 
   const getClassification = (sys: number, dia: number) => {
     if (!sys || !dia) return null;
-    if (sys > 180 || dia > 120) return { label: 'CRISIS', color: 'bg-red-600' };
-    if (sys >= 140 || dia >= 90) return { label: 'STAGE 2', color: 'bg-rose-500' };
-    if (sys >= 130 || dia >= 80) return { label: 'STAGE 1', color: 'bg-amber-500' };
-    if (sys >= 120 && dia < 80) return { label: 'ELEVATED', color: 'bg-yellow-500' };
+    if (sys >= 180 || dia >= 120) return { label: 'CRISIS', color: 'bg-red-600' };
+    if (sys >= 160 || dia >= 100) return { label: 'STAGE 2', color: 'bg-rose-500' };
+    if (sys >= 140 || dia >= 90) return { label: 'STAGE 1', color: 'bg-amber-500' };
+    if (sys >= 120 || dia > 80) return { label: 'PRE-HTN', color: 'bg-yellow-500' };
+    if (sys < 90 || dia < 60) return { label: 'LOW', color: 'bg-blue-500' };
     return { label: 'NORMAL', color: 'bg-emerald-500' };
   };
 

@@ -393,6 +393,7 @@ function RecordCard({
 }
 
 function VitalsCard({ type, data }: { type: string, data: any }) {
+  const [expanded, setExpanded] = useState(false);
   const isBS = type === 'blood_sugar';
   const isBP = type === 'blood_pressure';
   const isW = type === 'weight';
@@ -400,32 +401,108 @@ function VitalsCard({ type, data }: { type: string, data: any }) {
   const date = new Date(data.recorded_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="squircle border border-foreground/10 bg-background p-4 flex items-center gap-4 group hover:border-richcerulean/30 transition-all">
-      <div className={`w-10 h-10 squircle flex items-center justify-center shrink-0 ${
-        isBS ? 'bg-amber-50 text-amber-500' : isBP ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'
-      }`}>
-        {isBS ? <Thermometer size={18} /> : isBP ? <BP size={18} /> : <Scale size={18} />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <p className="text-[10px] font-mono font-bold uppercase text-foreground/30 tracking-wider">
-            {type.replace('_', ' ')}
-          </p>
-          <p className="text-[10px] font-mono text-foreground/40">{date}</p>
+    <div 
+      onClick={() => setExpanded(!expanded)}
+      className={`squircle border border-foreground/10 bg-background flex flex-col group hover:border-richcerulean/30 transition-all cursor-pointer overflow-hidden ${expanded ? 'shadow-md border-richcerulean/20' : ''}`}
+    >
+      <div className="p-4 flex items-center gap-4">
+        <div className={`w-10 h-10 squircle flex items-center justify-center shrink-0 ${
+          isBS ? 'bg-amber-50 text-amber-500' : isBP ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'
+        }`}>
+          {isBS ? <Thermometer size={18} /> : isBP ? <BP size={18} /> : <Scale size={18} />}
         </div>
-        <div className="flex items-baseline gap-2">
-          <span className="text-sm font-bold text-foreground">
-            {isBS ? `${data.glucose_value} mg/dL` : isBP ? `${data.systolic}/${data.diastolic} mmHg` : `${data.weight_kg} kg`}
-          </span>
-          <span className={`text-[10px] font-bold uppercase ${
-            isBS ? (data.indicator === 'high' ? 'text-rose-500' : data.indicator === 'low' ? 'text-amber-500' : 'text-emerald-500') :
-            isBP ? (data.classification.includes('stage') || data.classification === 'crisis' ? 'text-rose-500' : 'text-emerald-500') :
-            (data.bmi_classification === 'normal' ? 'text-emerald-500' : 'text-amber-500')
-          }`}>
-            {isBS ? data.indicator : isBP ? data.classification : data.bmi_classification}
-          </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <p className="text-[10px] font-mono font-bold uppercase text-foreground/30 tracking-wider">
+              {type.replace('_', ' ')}
+            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] font-mono text-foreground/40">{date}</p>
+              {expanded ? <ChevronUp size={12} className="text-foreground/30" /> : <ChevronDown size={12} className="text-foreground/30" />}
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm font-bold text-foreground">
+              {isBS ? `${data.glucose_value} mg/dL` : isBP ? `${data.systolic}/${data.diastolic} mmHg` : `${data.weight_kg} kg`}
+            </span>
+            <span className={`text-[10px] font-bold uppercase ${
+              isBS ? (data.indicator === 'high' ? 'text-rose-500' : data.indicator === 'low' ? 'text-amber-500' : 'text-emerald-500') :
+              isBP ? (
+                data.classification === 'low' ? 'text-blue-500' : 
+                data.classification === 'prehypertension' ? 'text-yellow-600' :
+                data.classification.includes('stage') || data.classification === 'crisis' ? 'text-rose-500' : 
+                'text-emerald-500'
+              ) :
+              (data.bmi_classification === 'normal' ? 'text-emerald-500' : 'text-amber-500')
+            }`}>
+              {isBS ? data.indicator : isBP ? data.classification : data.bmi_classification}
+            </span>
+          </div>
         </div>
       </div>
+      
+      {expanded && (
+        <div 
+          className="px-5 pb-5 pt-0 flex flex-col gap-4 border-t border-foreground/5 animate-in fade-in slide-in-from-top-1 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            {isBS && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Measurement</p>
+                  <p className="text-xs font-semibold text-foreground/70 uppercase">{data.measurement_type?.replace('_', ' ')}</p>
+                </div>
+                {data.meal_info && (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Meal Context</p>
+                    <p className="text-xs text-foreground/70">{data.meal_info}</p>
+                  </div>
+                )}
+                {data.medication_info && (
+                  <div className="flex flex-col gap-1 col-span-2">
+                    <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Medication</p>
+                    <p className="text-xs text-foreground/70">{data.medication_info}</p>
+                  </div>
+                )}
+              </>
+            )}
+            
+            {isBP && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Pulse</p>
+                  <p className="text-xs font-semibold text-foreground/70">{data.pulse} BPM</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Posture</p>
+                  <p className="text-xs font-semibold text-foreground/70 uppercase">{data.posture}</p>
+                </div>
+              </>
+            )}
+            
+            {isW && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">BMI</p>
+                  <p className="text-xs font-semibold text-foreground/70">{data.bmi?.toFixed(1)}</p>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase">Body Fat</p>
+                  <p className="text-xs font-semibold text-foreground/70">{data.body_fat}%</p>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {data.notes && (
+            <div className="squircle bg-foreground/5 p-3 mt-1">
+              <p className="text-[9px] font-mono font-bold text-foreground/30 uppercase mb-1">Notes</p>
+              <p className="text-xs text-foreground/70 leading-relaxed italic">&quot;{data.notes}&quot;</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
